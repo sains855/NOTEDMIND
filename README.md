@@ -149,7 +149,3 @@ NOTEDMIND/
 ---
 
 Created with ❤️ by **sains855(Abrar Wujedaan)**
-
-```
-
-```
