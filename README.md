@@ -1,7 +1,7 @@
 
 # NOTEDMIND 🧠
 
-![Notemind Interface](image.png)
+![Notemind Interface](tampilan.png)
 
 **Notemind** adalah aplikasi pencatat cerdas (*Smart Note-taking App*) berbasis web yang mengintegrasikan **Google Gemini AI**. Aplikasi ini dirancang untuk meningkatkan produktivitas dengan fitur otomatisasi seperti peringkasan catatan, pengembangan ide, hingga pembuatan judul otomatis, semuanya dalam antarmuka *Dark Mode* yang bersih dan modern.
 
