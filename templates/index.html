@@ -3,162 +3,524 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NoteMind - Gemini AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Notemind AI - Clean Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Styling untuk hasil Markdown dari AI */
-        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 0.5em; }
-        .prose ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 0.5em; }
-        .prose p { margin-bottom: 0.8em; }
-        .prose h1, .prose h2, .prose h3 { font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; color: #3730a3; }
-        .prose strong { color: #4338ca; font-weight: 700; }
-        .prose blockquote { border-left: 4px solid #e5e7eb; padding-left: 1em; color: #6b7280; font-style: italic; }
+        :root {
+            --bg-body: #0f172a;       
+            --bg-card: #1e293b;       
+            --bg-input: #334155;      
+            --text-main: #f1f5f9;     
+            --text-muted: #94a3b8;    
+            
+            --primary: #6366f1;       
+            --primary-hover: #4f46e5; 
+            --accent-ai: #8b5cf6; /* Warna Ungu untuk AI */    
+            
+            --danger: #ef4444;
+            --gold: #f59e0b;
+            --border: #334155;
+            
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* Header */
+        header { text-align: center; margin-bottom: 50px; }
+        h1 { 
+            font-family: 'Poppins', sans-serif; 
+            font-size: 3rem; 
+            margin-bottom: 5px; 
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        h1 span { 
+            background: linear-gradient(to right, var(--primary), var(--accent-ai));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Input Area */
+        .input-area {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            display: flex; flex-direction: column; gap: 15px;
+            max-width: 700px; margin: 0 auto 50px auto;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+        .input-area:focus-within { border-color: var(--primary); transform: translateY(-2px); }
+
+        input, textarea {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: var(--radius-md);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        input:focus, textarea:focus { border-color: var(--primary); }
+        textarea { resize: vertical; min-height: 100px; }
+
+        button.btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white; border: none; padding: 14px;
+            border-radius: var(--radius-md); cursor: pointer;
+            font-weight: 600; font-size: 1rem;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            transition: all 0.3s ease;
+        }
+        button.btn-primary:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        /* Notes Grid */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px; align-items: start; 
+        }
+
+        /* Note Card - Lebih Sederhana */
+        .note-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            display: flex; flex-direction: column;
+            border: 1px solid var(--border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            height: 100%; /* Agar tinggi seragam jika menggunakan flex stretch di grid */
+        }
+        .note-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: var(--shadow-lg); }
+        .note-card.pinned { border-color: var(--gold); background: linear-gradient(to bottom right, rgba(245, 158, 11, 0.05), var(--bg-card)); }
+
+        .note-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .note-title { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1.15rem; color: var(--text-main); line-height: 1.3; }
+        
+        .pin-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; transition: 0.3s; padding: 5px; }
+        .pin-btn:hover { color: white; }
+        .pin-btn.active { color: var(--gold); transform: rotate(45deg); }
+
+        .note-content { 
+            white-space: pre-wrap; margin-bottom: 20px; flex-grow: 1; 
+            color: #cbd5e1; font-size: 0.95rem;
+            display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* Card Actions Cleaner */
+        .card-actions {
+            display: flex; gap: 10px; margin-top: auto; padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05); justify-content: flex-end;
+        }
+
+        .btn-icon {
+            background: rgba(255,255,255,0.05); color: var(--text-muted);
+            padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid transparent;
+            font-size: 0.85rem; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); color: white; }
+        .btn-delete:hover { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
+        
+        /* Tombol Utama di Card */
+        .btn-view { background: rgba(99, 102, 241, 0.1); color: var(--primary); border-color: rgba(99, 102, 241, 0.3); }
+        .btn-view:hover { background: var(--primary); color: white; }
+
+        /* Modal Styles */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px);
+            justify-content: center; align-items: center; z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            background: var(--bg-card); padding: 0;
+            border-radius: var(--radius-lg); width: 90%; max-width: 700px;
+            border: 1px solid var(--border);
+            display: flex; flex-direction: column; max-height: 90vh;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h3 { font-family: 'Poppins', sans-serif; font-size: 1.4rem; color: var(--text-main); }
+        .close-modal { cursor: pointer; color: var(--text-muted); font-size: 1.5rem; transition: 0.2s; }
+        .close-modal:hover { color: var(--danger); }
+
+        .modal-body-scroll {
+            padding: 30px; overflow-y: auto; color: #cbd5e1; font-size: 1rem; line-height: 1.8;
+        }
+
+        /* AI SECTION IN MODAL */
+        .ai-controls {
+            margin-top: 30px; padding-top: 20px; border-top: 1px dashed var(--border);
+        }
+        .ai-label {
+            font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--accent-ai); font-weight: 700; margin-bottom: 15px; display: block;
+        }
+        
+        .ai-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        
+        .ai-btn {
+            background: rgba(139, 92, 246, 0.1); color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 10px 16px; border-radius: 8px; cursor: pointer;
+            font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
+            transition: all 0.2s;
+        }
+        .ai-btn:hover { background: var(--accent-ai); color: white; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3); }
+
+        .ai-result-box {
+            background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05), transparent);
+            border-left: 4px solid var(--accent-ai);
+            padding: 20px; border-radius: 0 8px 8px 0;
+            display: none; animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .ai-result-header { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; }
+        .ai-result-title { font-weight: 700; color: var(--accent-ai); display: flex; align-items: center; gap: 8px; }
+
+        /* Loader */
+        .loader {
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: #fff; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Edit Modal Layout */
+        .edit-layout { padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+<body>
 
-    <div id="app" class="max-w-4xl mx-auto">
-        <div class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-indigo-600 mb-2">NoteMind <span class="text-yellow-500">✦</span></h1>
-            <p class="text-gray-600">Catatan Pintar dengan Google gemini-2.5-flash</p>
+<div class="container">
+    <header>
+        <h1>Note<span>mind</span></h1>
+        <p>Catatan Cerdas & Rapi</p>
+    </header>
+
+    <div class="input-area">
+        <input type="text" id="noteTitle" placeholder="Judul Catatan (Opsional)">
+        <textarea id="noteContent" placeholder="Tulis ide brilianmu di sini..."></textarea>
+        <button class="btn-primary" onclick="addNote()">
+            <i class="fas fa-plus"></i> Simpan Catatan
+        </button>
+    </div>
+
+    <div class="notes-grid" id="notesContainer">
         </div>
+</div>
 
-        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-            <input v-model="newTitle" type="text" placeholder="Judul Catatan..." class="w-full mb-3 p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <textarea v-model="newContent" rows="4" placeholder="Tulis catatan Anda di sini..." class="w-full mb-3 p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-            <button @click="addNote" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition w-full md:w-auto font-semibold">
-                <i class="fas fa-plus mr-2"></i> Simpan Catatan
-            </button>
+<div class="modal" id="viewModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="viewTitle">Judul Catatan</h3>
+            <span class="close-modal" onclick="closeModal('viewModal')"><i class="fas fa-times"></i></span>
         </div>
+        <div class="modal-body-scroll">
+            <div id="viewBody" style="white-space: pre-wrap;"></div>
+            
+            <div class="ai-controls">
+                <span class="ai-label"><i class="fas fa-sparkles"></i> AI Tools</span>
+                <div class="ai-toolbar">
+                    <button class="ai-btn" onclick="askAIInModal('summarize')">
+                        <i class="fas fa-compress-alt"></i> Ringkas
+                    </button>
+                    <button class="ai-btn" onclick="askAIInModal('understand')">
+                        <i class="fas fa-child"></i> Jelaskan (ELI5)
+                    </button>
+                    <button class="ai-btn" onclick="askAIInModal('expand')">
+                        <i class="fas fa-plus-circle"></i> Kembangkan
+                    </button>
+                    <button class="ai-btn" onclick="askAIInModal('action_items')">
+                        <i class="fas fa-list-check"></i> Buat To-Do
+                    </button>
+                </div>
 
-        <div class="grid gap-6">
-            <div v-if="notes.length === 0" class="text-center text-gray-400 py-10">
-                Belum ada catatan. Mulai menulis sekarang!
+                <div id="aiResultContainer" class="ai-result-box">
+                    <div class="ai-result-header">
+                        <span class="ai-result-title"><i class="fas fa-robot"></i> Insight</span>
+                        <span style="font-size: 0.8rem; opacity: 0.7;">Generated by AI</span>
+                    </div>
+                    <div id="aiResultText"></div>
+                </div>
             </div>
-
-            <div v-for="note in notes" :key="note.id" class="bg-white p-6 rounded-lg shadow-md border-l-4 border-indigo-500 transition hover:shadow-lg">
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800">[[ note.title ]]</h2>
-                        <p class="text-xs text-gray-400">[[ note.created_at ]]</p>
-                    </div>
-                </div>
-                
-                <p class="text-gray-700 whitespace-pre-line mb-6 text-sm md:text-base">[[ note.content ]]</p>
-
-                <div class="flex flex-wrap gap-2 mb-4 border-t pt-4">
-                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wide w-full mb-1">Gemini Tools:</span>
-                    
-                    <button @click="askAI(note.id, 'summarize')" class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm hover:bg-blue-100 transition border border-blue-200">
-                        <i class="fas fa-list-ul mr-1"></i> Ringkas
-                    </button>
-                    <button @click="askAI(note.id, 'expand')" class="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-sm hover:bg-green-100 transition border border-green-200">
-                        <i class="fas fa-expand-alt mr-1"></i> Kembangkan
-                    </button>
-                    <button @click="askAI(note.id, 'understand')" class="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-sm hover:bg-purple-100 transition border border-purple-200">
-                        <i class="fas fa-lightbulb mr-1"></i> Jelaskan
-                    </button>
-                    <button @click="askAI(note.id, 'action_items')" class="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-sm hover:bg-red-100 transition border border-red-200">
-                        <i class="fas fa-check-square mr-1"></i> To-Do List
-                    </button>
-                </div>
-
-                <div v-if="loadingNoteId === note.id" class="p-4 bg-indigo-50 rounded flex items-center justify-center space-x-2 animate-pulse">
-                    <i class="fas fa-circle-notch fa-spin text-indigo-600"></i>
-                    <span class="text-indigo-600 text-sm font-medium">Gemini sedang berpikir...</span>
-                </div>
-
-                <div v-if="note.ai_insight" class="bg-gradient-to-br from-indigo-50 to-white p-5 rounded-lg border border-indigo-100 mt-2 shadow-sm">
-                    <div class="flex items-center mb-3 pb-2 border-b border-indigo-100">
-                        <i class="fas fa-robot text-indigo-500 mr-2 bg-indigo-100 p-1.5 rounded-full"></i>
-                        <h3 class="font-bold text-indigo-800 text-sm">Insight Gemini</h3>
-                    </div>
-                    <div class="prose text-gray-700 text-sm leading-relaxed" v-html="renderMarkdown(note.ai_insight)"></div>
-                </div>
+            
+            <div style="margin-top: 30px; pt-3; border-top: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.8rem;">
+                <span id="viewDate"></span>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        const { createApp } = Vue
+<div class="modal" id="editModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit Catatan</h3>
+            <span class="close-modal" onclick="closeModal('editModal')"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="edit-layout">
+            <input type="hidden" id="editId">
+            <input type="text" id="editTitle" placeholder="Judul">
+            <textarea id="editContent" rows="10" placeholder="Isi catatan..." style="resize: vertical;"></textarea>
+            <div style="text-align: right;">
+                <button class="btn-primary" onclick="saveEdit()">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        createApp({
-            // CONFIG PENTING: Ganti delimiter vue jadi [[ ]]
-            delimiters: ['[[', ']]'], 
+<script>
+    const API_URL = '/api/notes'; // Sesuaikan dengan endpoint Anda
+    let notesData = [];
+    let currentOpenNoteId = null; // Menyimpan ID note yang sedang dibuka di modal
+
+    document.addEventListener('DOMContentLoaded', loadNotes);
+
+    async function loadNotes() {
+        try {
+            // Hapus logika if(!notesData.length) agar selalu update dari server
+            const res = await fetch(API_URL);
             
-            data() {
-                return {
-                    notes: [],
-                    newTitle: '',
-                    newContent: '',
-                    loadingNoteId: null
-                }
-            },
-            mounted() {
-                this.fetchNotes();
-            },
-            methods: {
-                async fetchNotes() {
-                    try {
-                        const res = await fetch('/api/notes');
-                        this.notes = await res.json();
-                    } catch (e) {
-                        console.error("Gagal ambil data:", e);
-                    }
-                },
-                async addNote() {
-                    if (!this.newTitle.trim() || !this.newContent.trim()) {
-                        return alert("Judul dan isi tidak boleh kosong");
-                    }
-                    
-                    try {
-                        const res = await fetch('/api/notes', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ title: this.newTitle, content: this.newContent })
-                        });
-                        
-                        if (res.ok) {
-                            this.newTitle = '';
-                            this.newContent = '';
-                            this.fetchNotes();
-                        }
-                    } catch (e) {
-                        alert("Gagal menyimpan catatan");
-                    }
-                },
-                async askAI(noteId, action) {
-                    this.loadingNoteId = noteId;
-                    try {
-                        const res = await fetch('/api/process-ai', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ note_id: noteId, action: action })
-                        });
-                        const data = await res.json();
-                        
-                        // Update UI tanpa refresh
-                        const noteIndex = this.notes.findIndex(n => n.id === noteId);
-                        if (noteIndex !== -1) {
-                            this.notes[noteIndex].ai_insight = data.result;
-                        }
-                    } catch (err) {
-                        alert("Gagal memproses AI: " + err);
-                    } finally {
-                        this.loadingNoteId = null;
-                    }
-                },
-                renderMarkdown(text) {
-                    // Mencegah error jika text kosong/null
-                    if (!text) return '';
-                    return marked.parse(text);
-                }
+            if (res.ok) {
+                notesData = await res.json();
+                renderNotes(notesData);
+            } else {
+                console.error("Gagal mengambil data");
             }
-        }).mount('#app')
-    </script>
+        } catch (err) {
+            console.error("Error loading notes:", err);
+            // Opsional: Tampilkan pesan error di UI jika fetch gagal total
+            document.getElementById('notesContainer').innerHTML = 
+                '<p style="text-align:center; color:var(--danger)">Gagal memuat catatan. Pastikan server berjalan.</p>';
+        }
+    }
+
+    function renderNotes(notes) {
+        const container = document.getElementById('notesContainer');
+        container.innerHTML = '';
+
+        if (notes.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+                    <i class="fas fa-feather" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <p>Catatan kosong. Mulai tulis ide barumu!</p>
+                </div>`;
+            return;
+        }
+
+        notes.forEach(note => {
+            const isPinnedClass = note.is_pinned ? 'pinned' : '';
+            const pinActiveClass = note.is_pinned ? 'active' : '';
+
+            // Grid sekarang jauh lebih bersih tanpa tombol AI
+            const html = `
+                <div class="note-card ${isPinnedClass}">
+                    <div class="note-header">
+                        <span class="note-title">${note.title || '<span style="opacity:0.5;">Tanpa Judul</span>'}</span>
+                        <button class="pin-btn ${pinActiveClass}" onclick="togglePin(${note.id}, ${note.is_pinned})" title="Pin/Unpin">
+                            <i class="fas fa-thumbtack"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="note-content">${note.content}</div>
+
+                    <div class="card-actions">
+                        <button class="btn-icon btn-view" onclick="openViewModal(${note.id})" title="Buka & Analisis AI">
+                            <i class="fas fa-expand"></i> Buka
+                        </button>
+                        <button class="btn-icon" onclick="openEditModal(${note.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="deleteNote(${note.id})" title="Hapus">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += html;
+        });
+    }
+
+    // --- LOGIC VIEW MODAL DENGAN AI ---
+    function openViewModal(id) {
+        currentOpenNoteId = id; // Set global ID agar tombol AI tahu targetnya
+        const note = notesData.find(n => n.id === id);
+        if (!note) return;
+
+        // Reset UI Modal
+        document.getElementById('viewTitle').innerText = note.title || 'Tanpa Judul';
+        document.getElementById('viewBody').innerText = note.content;
+        
+        // Format Tanggal
+        const dateStr = new Date(note.created_at).toLocaleDateString('id-ID', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit'
+        });
+        document.getElementById('viewDate').innerText = `Dibuat: ${dateStr}`;
+
+        // Reset & Load AI Result jika sudah pernah disimpan
+        const aiContainer = document.getElementById('aiResultContainer');
+        const aiText = document.getElementById('aiResultText');
+        
+        if (note.ai_insight && note.ai_insight.trim() !== "") {
+            aiContainer.style.display = 'block';
+            aiText.innerHTML = formatAIResult(note.ai_insight);
+        } else {
+            aiContainer.style.display = 'none';
+            aiText.innerHTML = '';
+        }
+
+        document.getElementById('viewModal').style.display = 'flex';
+    }
+
+    async function askAIInModal(action) {
+        if (!currentOpenNoteId) return;
+
+        const aiContainer = document.getElementById('aiResultContainer');
+        const aiText = document.getElementById('aiResultText');
+        
+        // Tampilkan container loading
+        aiContainer.style.display = 'block';
+        aiText.innerHTML = '<div style="display:flex; align-items:center; gap:10px; color:#a78bfa;"><div class="loader"></div> <span>AI sedang berpikir...</span></div>';
+        
+        // Scroll ke bawah agar user melihat proses
+        const modalBody = document.querySelector('.modal-body-scroll');
+        modalBody.scrollTop = modalBody.scrollHeight;
+
+        try {
+            const res = await fetch('/api/process-ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ note_id: currentOpenNoteId, action: action })
+            });
+            const data = await res.json();
+            
+            // Format Hasil Markdown ke HTML Sederhana
+            const formatted = formatAIResult(data.result);
+            
+            aiText.innerHTML = formatted;
+            
+            // Update data lokal agar tidak perlu fetch ulang jika modal dibuka tutup
+            const note = notesData.find(n => n.id === currentOpenNoteId);
+            if(note) note.ai_insight = data.result;
+
+        } catch (err) {
+            aiText.innerHTML = '<span style="color:var(--danger)">Gagal menghubungi AI. Coba lagi nanti.</span>';
+        }
+    }
+
+    function formatAIResult(text) {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') // Bold
+            .replace(/\* /g, '• ') // Bullet points
+            .replace(/\n/g, '<br>'); // Newlines
+    }
+
+    // --- OPERASI CRUD STANDAR ---
+    async function addNote() {
+        const title = document.getElementById('noteTitle').value.trim();
+        const content = document.getElementById('noteContent').value.trim();
+        if (!content) return alert("Isi catatan tidak boleh kosong!");
+
+        const btn = document.querySelector('.input-area button');
+        btn.innerHTML = '<div class="loader"></div>';
+        btn.disabled = true;
+
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            });
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteContent').value = '';
+            loadNotes();
+        } catch(e) { alert('Error'); } 
+        finally { 
+            btn.innerHTML = '<i class="fas fa-plus"></i> Simpan Catatan'; 
+            btn.disabled = false; 
+        }
+    }
+
+    async function deleteNote(id) {
+        if(!confirm("Hapus catatan?")) return;
+        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        loadNotes();
+    }
+
+    async function togglePin(id, currentStatus) {
+        await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_pinned: !currentStatus })
+        });
+        loadNotes();
+    }
+
+    function openEditModal(id) {
+        const note = notesData.find(n => n.id === id);
+        if (!note) return;
+        document.getElementById('editId').value = id;
+        document.getElementById('editTitle').value = note.title;
+        document.getElementById('editContent').value = note.content;
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    async function saveEdit() {
+        const id = document.getElementById('editId').value;
+        const title = document.getElementById('editTitle').value;
+        const content = document.getElementById('editContent').value;
+        
+        await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content })
+        });
+        closeModal('editModal');
+        loadNotes();
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+        if(id === 'viewModal') currentOpenNoteId = null; // Reset ID saat tutup modal
+    }
+
+    window.onclick = function(e) {
+        if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+        }
+    }
+</script>
+
 </body>
 </html>
