@@ -7,7 +7,6 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
 
     <style>
@@ -23,6 +22,7 @@
             --accent-ai: #8b5cf6;     
             --danger: #ef4444;
             --sidebar-width: 300px;
+            --pin-color: #f59e0b; /* Warna Emas untuk Pin */
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,7 +34,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Mencegah scroll pada body utama */
+            overflow: hidden;
         }
 
         /* 1. NAVBAR */
@@ -60,7 +60,7 @@
         /* 2. LAYOUT CONTAINER */
         .layout-wrapper {
             display: flex;
-            flex: 1; /* Mengisi sisa tinggi */
+            flex: 1;
             height: calc(100vh - 60px);
         }
 
@@ -109,12 +109,29 @@
             transition: 0.2s;
             margin-bottom: 5px;
             border: 1px solid transparent;
+            position: relative;
         }
         .note-item:hover { background: rgba(255,255,255,0.05); }
+        
         .note-item.active {
             background: rgba(99, 102, 241, 0.15);
             border-color: var(--primary);
         }
+
+        /* --- STYLE KHUSUS PINNED ITEM (SIDEBAR) --- */
+        .note-item.pinned {
+            border-left: 3px solid var(--accent-ai);
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.1), transparent);
+        }
+        .note-item.pinned .note-item-title::after {
+            content: '\f08d'; /* Icon Pin FontAwesome */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 0.7rem;
+            color: var(--accent-ai);
+            margin-left: 8px;
+        }
+
         .note-item-title {
             font-weight: 600;
             color: var(--text-main);
@@ -131,7 +148,7 @@
             display: flex;
             flex-direction: column;
             background: var(--bg-body);
-            overflow-y: auto; /* Scroll konten jika panjang */
+            overflow-y: auto;
             position: relative;
         }
 
@@ -167,7 +184,7 @@
             background: linear-gradient(to right, rgba(139, 92, 246, 0.05), rgba(15, 23, 42, 0));
             border-left: 4px solid var(--accent-ai);
             padding: 20px; border-radius: 0 8px 8px 0;
-            display: none; /* Hidden by default */
+            display: none;
             color: #cbd5e1;
             font-size: 0.95rem;
             line-height: 1.6;
@@ -194,7 +211,7 @@
         }
         .title-input::placeholder { color: rgba(255,255,255,0.2); }
 
-        /* Customizing EasyMDE Dark Theme */
+        /* EasyMDE Dark Theme Customization */
         .EasyMDEContainer { background: transparent; border: none; }
         .editor-toolbar {
             background-color: transparent !important;
@@ -215,16 +232,17 @@
             padding: 10px 0 !important;
         }
         .CodeMirror-cursor { border-left: 2px solid var(--primary) !important; }
-        .editor-statusbar { display: none !important; } /* Hide bottom status bar */
-        .editor-preview { background: var(--bg-card) !important; color: var(--text-main) !important; }
+        .editor-statusbar { display: none !important; }
+        .editor-preview { background: var(--bg-sidebar) !important; color: var(--text-main) !important; }
 
-        /* Save Actions */
+        /* Actions (Floating Buttons) */
         .editor-actions {
             position: fixed;
             bottom: 20px;
             right: 30px;
             display: flex;
             gap: 10px;
+            z-index: 100;
         }
 
         .btn-float {
@@ -236,8 +254,25 @@
         }
         .btn-save { background: var(--primary); }
         .btn-save:hover { background: var(--primary-hover); transform: scale(1.1); }
+        
         .btn-delete { background: #334155; color: var(--danger); }
         .btn-delete:hover { background: #1e293b; transform: scale(1.1); }
+
+        /* --- STYLE TOMBOL PIN --- */
+        .btn-pin {
+            background: var(--pin-color);
+            color: white;
+        }
+        .btn-pin:hover {
+            background: #d97706;
+            transform: scale(1.1);
+        }
+        /* Style saat tombol pin aktif (sedang dipin) */
+        .btn-pin.active-pin {
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.3);
+            transform: scale(0.95);
+            border: 2px solid #fff;
+        }
 
         /* Loader */
         .loader {
@@ -247,7 +282,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Scrollbar styling */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -301,6 +335,10 @@
             </div>
 
             <div class="editor-actions">
+                <button id="btnPin" class="btn-float btn-pin" onclick="togglePin()" title="Pin Catatan">
+                    <i class="fas fa-thumbtack"></i>
+                </button>
+                
                 <button class="btn-float btn-delete" onclick="deleteCurrentNote()" title="Hapus Catatan">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -323,16 +361,14 @@
 
         // --- INISIALISASI ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Setup EasyMDE Editor
             easyMDE = new EasyMDE({ 
                 element: document.getElementById('markdownEditor'),
                 spellChecker: false,
                 placeholder: "Tulis ide brilianmu di sini (Support Markdown)...",
-                status: false, // Hide status bar
+                status: false, 
                 toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "side-by-side", "fullscreen"],
             });
 
-            // Load Notes awal
             loadSidebarNotes();
 
             // Shortcut Save (Ctrl + S)
@@ -347,7 +383,6 @@
         // --- MANAJEMEN DATA & SIDEBAR ---
         async function loadSidebarNotes() {
             try {
-                // Simulasi Fetch (Ganti dengan fetch asli Anda)
                 const res = await fetch(API_URL);
                 if(res.ok) {
                     notesData = await res.json();
@@ -362,8 +397,13 @@
 
             notesData.forEach(note => {
                 const date = new Date(note.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                
+                // Logic Tampilan Pinned
+                const pinnedClass = note.is_pinned ? 'pinned' : '';
+                const activeClass = currentNoteId === note.id ? 'active' : '';
+
                 const div = document.createElement('div');
-                div.className = `note-item ${currentNoteId === note.id ? 'active' : ''}`;
+                div.className = `note-item ${pinnedClass} ${activeClass}`;
                 div.onclick = () => selectNote(note.id);
                 div.innerHTML = `
                     <div class="note-item-title">${note.title || 'Tanpa Judul'}</div>
@@ -377,15 +417,16 @@
             currentNoteId = id;
             const note = notesData.find(n => n.id === id);
             
-            // Update UI Sidebar Active State
             renderSidebar(); 
             
-            // Populate Editor
             if (note) {
                 document.getElementById('noteTitle').value = note.title;
                 easyMDE.value(note.content || "");
                 
-                // Clear or Show AI Result if saved
+                // Update Tombol Pin UI
+                updatePinButtonUI(note.is_pinned);
+
+                // AI Result
                 const aiBox = document.getElementById('aiResultBox');
                 if (note.ai_insight) {
                     aiBox.innerHTML = `<strong><i class="fas fa-robot"></i> Insight Tersimpan:</strong><br>${formatAIResult(note.ai_insight)}`;
@@ -398,14 +439,60 @@
         }
 
         function createNewNote() {
-            currentNoteId = null; // Reset ID menandakan ini catatan baru
+            currentNoteId = null;
             document.getElementById('noteTitle').value = "";
             easyMDE.value("");
             document.getElementById('aiResultBox').style.display = 'none';
-            document.getElementById('noteTitle').focus();
             
-            // Hapus kelas active di sidebar
+            // Reset Tombol Pin ke default
+            updatePinButtonUI(false);
+            
+            document.getElementById('noteTitle').focus();
             document.querySelectorAll('.note-item').forEach(el => el.classList.remove('active'));
+        }
+
+        // --- LOGIKA PIN ---
+        function updatePinButtonUI(isPinned) {
+            const btn = document.getElementById('btnPin');
+            if (isPinned) {
+                btn.classList.add('active-pin');
+                btn.innerHTML = '<i class="fas fa-thumbtack"></i>'; 
+                btn.title = "Unpin Catatan";
+            } else {
+                btn.classList.remove('active-pin');
+                btn.innerHTML = '<i class="fas fa-thumbtack" style="opacity: 0.7"></i>'; 
+                btn.title = "Pin Catatan";
+            }
+        }
+
+        async function togglePin() {
+            if (!currentNoteId) return alert("Pilih atau simpan catatan dulu sebelum di-pin!");
+
+            const note = notesData.find(n => n.id === currentNoteId);
+            if (!note) return;
+
+            const newStatus = !note.is_pinned;
+
+            try {
+                // Optimistic UI Update
+                updatePinButtonUI(newStatus);
+                
+                // Backend Request
+                const res = await fetch(`${API_URL}/${currentNoteId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_pinned: newStatus })
+                });
+
+                if (res.ok) {
+                    await loadSidebarNotes(); // Reload urutan
+                    selectNote(currentNoteId); // Keep selection
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Gagal mengubah status pin.");
+                updatePinButtonUI(!newStatus); // Revert jika gagal
+            }
         }
 
         // --- CRUD ACTIONS ---
@@ -419,7 +506,6 @@
             const url = currentNoteId ? `${API_URL}/${currentNoteId}` : API_URL;
 
             try {
-                // Ubah icon tombol save jadi loading
                 const btnSave = document.querySelector('.btn-save');
                 const oriHtml = btnSave.innerHTML;
                 btnSave.innerHTML = '<div class="loader"></div>';
@@ -431,13 +517,9 @@
                 });
 
                 if (res.ok) {
-                    // Jika catatan baru, ambil ID dari response (asumsi backend return object created)
                     if (!currentNoteId) {
-                        // Reload list untuk mendapatkan ID baru dari server
                         await loadSidebarNotes();
-                        // (Opsional: Select item terakhir yang dibuat)
                     } else {
-                        // Refresh data lokal sidebar saja
                         loadSidebarNotes();
                     }
                 }
@@ -455,8 +537,8 @@
 
             try {
                 await fetch(`${API_URL}/${currentNoteId}`, { method: 'DELETE' });
-                createNewNote(); // Reset form
-                loadSidebarNotes(); // Refresh list
+                createNewNote();
+                loadSidebarNotes();
             } catch (err) { alert("Gagal menghapus"); }
         }
 
@@ -474,20 +556,15 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        note_id: currentNoteId, // Kirim ID jika ada
-                        content_context: content, // Kirim konten langsung dari editor
+                        note_id: currentNoteId, 
+                        content_context: content,
                         action: action 
                     })
                 });
                 
                 const data = await res.json();
                 const formatted = formatAIResult(data.result);
-                
                 aiBox.innerHTML = formatted;
-
-                // Opsional: Auto-save AI result ke catatan jika backend mendukung field 'ai_insight'
-                // updateLocalAIState(data.result);
-
             } catch (err) {
                 aiBox.innerHTML = '<span style="color:var(--danger)">Gagal terhubung ke AI.</span>';
             }
