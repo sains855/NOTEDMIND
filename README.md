@@ -8,31 +8,31 @@
 ## ✨ Fitur Unggulan
 
 ### 📝 Manajemen Catatan (Smart CRUD)
-* **Create, Read, Update, Delete:** Pengelolaan catatan yang responsif tanpa *reload* halaman[cite: 1].
-* **Pinning System:** Fitur untuk menyematkan (*Pin*) catatan penting agar selalu tampil di urutan teratas daftar[cite: 1].
-* **Auto-Title AI:** Jika catatan disimpan tanpa judul, AI akan secara otomatis menganalisis konten dan membuatkan judul yang relevan[cite: 1].
+* **Create, Read, Update, Delete:** Pengelolaan catatan yang responsif tanpa *reload* halaman.
+* **Pinning System:** Fitur untuk menyematkan (*Pin*) catatan penting agar selalu tampil di urutan teratas daftar.
+* **Auto-Title AI:** Jika catatan disimpan tanpa judul, AI akan secara otomatis menganalisis konten dan membuatkan judul yang relevan.
 
 ### 🤖 Integrasi AI (Google Gemini 2.5 Flash)
-Aplikasi ini menggunakan model `gemini-2.5-flash` untuk memberikan analisis mendalam pada catatan Anda[cite: 1]:
+Aplikasi ini menggunakan model `gemini-2.5-flash` untuk memberikan analisis mendalam pada catatan Anda:
 * **Ringkas (Summarize):** Membuat poin-poin ringkasan dari teks yang panjang.
 * **ELI5 (Explain Like I'm 5):** Menjelaskan konsep kompleks dalam catatan dengan bahasa yang sangat sederhana.
 * **Kembangkan (Expand):** Mengubah ide satu kalimat menjadi paragraf profesional.
 * **Action Items:** Mengonversi narasi catatan menjadi daftar tugas (*To-Do List*) konkret.
 
 ### 🎨 Antarmuka Modern (UI/UX)
-* **Clean Dark Mode:** Desain visual berbasis warna gelap (`#0f172a`) yang nyaman di mata[cite: 1].
-* **Responsive Grid:** Tampilan kartu catatan yang menyesuaikan secara otomatis dengan ukuran layar perangkat[cite: 1].
-* **Interactive Modals:** Edit dan lihat detail catatan menggunakan jendela *pop-up* untuk pengalaman pengguna yang cepat[cite: 1].
+* **Clean Dark Mode:** Desain visual berbasis warna gelap (`#0f172a`) yang nyaman di mata.
+* **Responsive Grid:** Tampilan kartu catatan yang menyesuaikan secara otomatis dengan ukuran layar perangkat.
+* **Interactive Modals:** Edit dan lihat detail catatan menggunakan jendela *pop-up* untuk pengalaman pengguna yang cepat.
 
 ---
 
 ## 🛠️ Teknologi yang Digunakan
 
 * **Backend:** Python 3, Flask
-* **Database:** SQLite (menggunakan SQLAlchemy ORM) [cite: 1]
-* **AI Engine:** Google GenAI SDK (`google-genai`) [cite: 1]
-* **Environment:** `python-dotenv` untuk manajemen variabel lingkungan [cite: 1]
-* **Frontend:** HTML5, CSS3 (Custom Properties), Vanilla JavaScript [cite: 1]
+* **Database:** SQLite (menggunakan SQLAlchemy ORM) 
+* **AI Engine:** Google GenAI SDK (`google-genai`) 
+* **Environment:** `python-dotenv` untuk manajemen variabel lingkungan 
+* **Frontend:** HTML5, CSS3 (Custom Properties), Vanilla JavaScript 
 
 ---
 
@@ -122,9 +122,9 @@ NOTEDMIND/
 │   └── index.html      # File utama Frontend (HTML/CSS/JS)
 │
 ├── .env                # File konfigurasi sensitif (API Key) - JANGAN DI-UPLOAD KE GITHUB
-├── .env.example        # Contoh template konfigurasi environment [cite: 1]
+├── .env.example        # Contoh template konfigurasi environment 
 ├── .gitignore          # Daftar file yang diabaikan oleh Git [cite: 2]
-├── app.py              # File utama Backend (Flask Routes & AI Logic) [cite: 1]
+├── app.py              # File utama Backend (Flask Routes & AI Logic) 
 └── README.md           # Dokumentasi proyek ini
 
 ```
